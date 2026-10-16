@@ -50,4 +50,4 @@ Convert any document into one Markdown file, ready to feed to an AI. PDF pages k
 
 - The `<skill dir>` is the folder containing this SKILL.md — resolve it before running scripts.
 - OCR is slow (~1–3 s/page at 300 DPI). For large books run in the background; the script prints progress every 25 pages.
-- The output header embeds the usage line for the next AI (e.g. 「每頁以 ## Page N 分隔」), so the `.md` explains its own structure.
+- The output starts with `# <title>` and a `> Source: <file> -> Markdown (<detail>).` line recording the original filename and conversion detail.

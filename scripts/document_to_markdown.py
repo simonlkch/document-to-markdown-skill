@@ -58,8 +58,6 @@ MODERN_EXTS = ({".pdf", ".docx", ".pptx", ".xlsx", ".xlsm", ".html", ".htm", ".x
                | IMAGE_EXTS | TEXT_EXTS | MD_EXTS | CSV_EXTS | set(FENCE_EXTS))
 SUPPORTED_EXTS = MODERN_EXTS | misc_engine.RTF_ODF_EXTS | set(misc_engine.BINARY_OFFICE_EXTS)
 
-DEFAULT_USAGE_HINT = "根據文件內容回答我的問題"
-
 
 # ------------------------------------------------------------------ env setup
 
@@ -154,43 +152,41 @@ def cmd_setup() -> int:
 # ------------------------------------------------------------------ conversion
 
 def convert_modern(src: Path, ext: str, args, tess, extra_args: list[str], log=print):
-    """Return (sections, stats, usage_hint, title) for the natively supported formats."""
-    hint = DEFAULT_USAGE_HINT
-
+    """Return (sections, stats, title) for the natively supported formats."""
     if ext == ".pdf":
         title = pdf_engine.pdf_title(src) or src.stem
         sections, stats = pdf_engine.convert_pdf(
             src, start=args.start, end=args.end, dpi=args.dpi, lang=args.lang,
             mode=args.mode, tess=tess, extra_args=extra_args, log=log)
-        return sections, stats, "每頁以 ## Page N 分隔", title
+        return sections, stats, title
     if ext == ".docx":
         sections, stats = office_engine.convert_docx(src, log=log)
-        return sections, stats, hint, src.stem
+        return sections, stats, src.stem
     if ext == ".pptx":
         sections, stats = office_engine.convert_pptx(src, start=args.start, end=args.end, log=log)
-        return sections, stats, "每頁以 ## Slide N 分隔", src.stem
+        return sections, stats, src.stem
     if ext in (".xlsx", ".xlsm"):
         sections, stats = office_engine.convert_xlsx(src, log=log)
-        return sections, stats, "每個工作表以 ## Sheet: 名 分隔", src.stem
+        return sections, stats, src.stem
     if ext in (".html", ".htm", ".xhtml"):
         sections, stats = web_engine.convert_html(src, log=log)
-        return sections, stats, hint, src.stem
+        return sections, stats, src.stem
     if ext == ".epub":
         sections, stats = web_engine.convert_epub(src, log=log)
-        return sections, stats, "每章以 ## 標題 分隔", src.stem
+        return sections, stats, src.stem
     if ext in IMAGE_EXTS:
         sections, stats = misc_engine.convert_image(
             src, lang=args.lang, tess=tess, extra_args=extra_args, log=log)
-        return sections, stats, "直接根據 OCR 出嚟嘅文字回答", src.stem
+        return sections, stats, src.stem
     if ext in TEXT_EXTS or ext in MD_EXTS:
         sections, stats = misc_engine.convert_text(src, log=log)
-        return sections, stats, hint, src.stem
+        return sections, stats, src.stem
     if ext in CSV_EXTS:
         sections, stats = misc_engine.convert_csv(src, log=log)
-        return sections, stats, hint, src.stem
+        return sections, stats, src.stem
     if ext in FENCE_EXTS:
         sections, stats = misc_engine.convert_fenced(src, FENCE_EXTS[ext], log=log)
-        return sections, stats, hint, src.stem
+        return sections, stats, src.stem
     raise RuntimeError(f"unsupported format: {ext}")
 
 
@@ -240,7 +236,7 @@ def convert(args) -> int:
             with tempfile.TemporaryDirectory(prefix="doc2md_") as td:
                 converted = misc_engine.convert_binary_office(src, soffice, Path(td))
                 cext = converted.suffix.lower()
-                sections, stats, usage_hint, title = convert_modern(
+                sections, stats, title = convert_modern(
                     converted, cext, args, tess, extra_args)
                 stats["detail"] = f"{stats['detail']} ({ext} via LibreOffice)"
         elif ext in misc_engine.RTF_ODF_EXTS:
@@ -250,10 +246,10 @@ def convert(args) -> int:
                       "  Windows: winget install --id JohnMacFarlane.Pandoc -e\n"
                       "  macOS  : brew install pandoc", file=sys.stderr)
                 return 1
-            sections, stats, usage_hint, title = (
-                *misc_engine.convert_with_pandoc(src, pandoc), DEFAULT_USAGE_HINT, src.stem)
+            sections, stats = misc_engine.convert_with_pandoc(src, pandoc)
+            title = src.stem
         else:
-            sections, stats, usage_hint, title = convert_modern(src, ext, args, tess, extra_args)
+            sections, stats, title = convert_modern(src, ext, args, tess, extra_args)
     except SystemExit:
         raise
     except Exception as e:
@@ -265,8 +261,6 @@ def convert(args) -> int:
         f"# {title}",
         "",
         f"> Source: {src.name} -> Markdown ({stats.get('detail', '')}).",
-        "",
-        f"**用法：** 上傳 {out.name}，同 AI 講：「{usage_hint}」。",
         "",
     ]
     for heading, body in sections:

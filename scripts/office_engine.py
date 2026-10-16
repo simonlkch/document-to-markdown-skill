@@ -118,17 +118,21 @@ def _trim_rows(rows: list[list]) -> list[list]:
 
 def convert_xlsx(path: Path, log=print):
     """Excel workbook -> one 'Sheet: name' section per worksheet, rows as pipe tables."""
+    import warnings
+
     from openpyxl import load_workbook
 
-    wb = load_workbook(str(path), read_only=True, data_only=True)
     sections: list[tuple[str, str]] = []
-    for ws in wb.worksheets:
-        rows = [["" if v is None else v for v in row]
-                for row in ws.iter_rows(values_only=True)]
-        rows = _trim_rows(rows)
-        body = md_table(rows) if rows else "(empty sheet)"
-        sections.append((f"Sheet: {ws.title}", body))
-    wb.close()
+    with warnings.catch_warnings():  # openpyxl "Unknown extension" noise on some files
+        warnings.simplefilter("ignore", UserWarning)
+        wb = load_workbook(str(path), read_only=True, data_only=True)
+        for ws in wb.worksheets:
+            rows = [["" if v is None else v for v in row]
+                    for row in ws.iter_rows(values_only=True)]
+            rows = _trim_rows(rows)
+            body = md_table(rows) if rows else "(empty sheet)"
+            sections.append((f"Sheet: {ws.title}", body))
+        wb.close()
     if not sections:
         sections = [(None, "(no worksheets)")]
     return sections, {"detail": f"{len(sections)} worksheets (xlsx)"}

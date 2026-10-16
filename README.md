@@ -88,7 +88,7 @@ On first use the agent sets up the environment for you: it creates the skill's o
 
 You can also invoke the skill explicitly by name: `/document-to-markdown-skill` (Qoder, Claude Code), `$document-to-markdown-skill` (Codex), `/skill:document-to-markdown-skill` (pi).
 
-The result is a single Markdown file next to your input — with a self-describing header — ready to feed to any AI.
+The result is a single Markdown file next to your input, with a `> Source:` header recording the original file — ready to feed to any AI.
 
 ### As a CLI
 
@@ -115,7 +115,7 @@ Standalone options:
 
 1. The input extension picks a converter: PyMuPDF (PDF), mammoth (DOCX), python-pptx (PPTX), openpyxl (XLSX), Tesseract (images), bs4/markdownify (HTML), ebooklib (EPUB), direct parsing (CSV/JSON/XML/TXT).
 2. PDF pages are tested for a usable text layer. Enough text → extracted directly; otherwise the page is rendered at 300 DPI and OCR'd.
-3. Everything is assembled into one Markdown file — with a usage header so the file is self-describing when fed to an AI.
+3. Everything is assembled into one Markdown file with a `> Source:` header recording the original file.
 
 ## Uninstall
 

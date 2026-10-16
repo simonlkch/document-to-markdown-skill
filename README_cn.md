@@ -86,7 +86,7 @@ python scripts/document_to_markdown.py --setup                       # 一次性
 
 你也可以明确调用这个技能：`/document-to-markdown-skill`（Qoder、Claude Code）、`$document-to-markdown-skill`（Codex）、`/skill:document-to-markdown-skill`（pi）。
 
-转换结果：输入文件旁边会生成一个 Markdown 文件，并附带自我说明的文件头——可直接交给任何 AI。
+转换结果：输入文件旁边会生成一个 Markdown 文件，附带 `> Source:` 文件头记录原始文件名——可直接交给任何 AI。
 
 ### 作为 CLI 使用
 
@@ -113,7 +113,7 @@ python scripts/document_to_markdown.py --setup                       # 一次性
 
 1. 根据扩展名选择转换引擎：PyMuPDF（PDF）、mammoth（DOCX）、python-pptx（PPTX）、openpyxl（XLSX）、Tesseract（图片）、bs4/markdownify（HTML）、ebooklib（EPUB）、直接解析（CSV/JSON/XML/TXT）。
 2. PDF 会逐页检查是否有可用的文字层。文字充足时直接提取；否则将该页以 300 DPI 渲染后交给 Tesseract 进行 OCR。
-3. 所有内容组合成同一个 Markdown 文件，并附上使用说明的文件头，让文件交给 AI 时能够自我说明。
+3. 所有内容组合成同一个 Markdown 文件，并附上 `> Source:` 文件头记录原始文件名。
 
 ## 卸载
 
