@@ -38,6 +38,7 @@ import misc_engine
 import office_engine
 import pdf_engine
 import web_engine
+from img_utils import ImageSink
 from ocr_engine import ensure_langs, find_tesseract, tesseract_version
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
@@ -202,22 +203,24 @@ def cmd_setup(install_system: bool = False) -> int:
 
 # ------------------------------------------------------------------ conversion
 
-def convert_modern(src: Path, ext: str, args, tess, extra_args: list[str], log=print):
+def convert_modern(src: Path, ext: str, args, tess, extra_args: list[str],
+                   sink=None, log=print):
     """Return (sections, stats, title) for the natively supported formats."""
     if ext == ".pdf":
         title = pdf_engine.pdf_title(src) or src.stem
         sections, stats = pdf_engine.convert_pdf(
             src, start=args.start, end=args.end, dpi=args.dpi, lang=args.lang,
-            mode=args.mode, tess=tess, extra_args=extra_args, log=log)
+            mode=args.mode, tess=tess, extra_args=extra_args, log=log, sink=sink)
         return sections, stats, title
     if ext == ".docx":
-        sections, stats = office_engine.convert_docx(src, log=log)
+        sections, stats = office_engine.convert_docx(src, log=log, sink=sink)
         return sections, stats, src.stem
     if ext == ".pptx":
-        sections, stats = office_engine.convert_pptx(src, start=args.start, end=args.end, log=log)
+        sections, stats = office_engine.convert_pptx(
+            src, start=args.start, end=args.end, log=log, sink=sink)
         return sections, stats, src.stem
     if ext in (".xlsx", ".xlsm"):
-        sections, stats = office_engine.convert_xlsx(src, log=log)
+        sections, stats = office_engine.convert_xlsx(src, log=log, sink=sink)
         return sections, stats, src.stem
     if ext in (".html", ".htm", ".xhtml"):
         sections, stats = web_engine.convert_html(src, log=log)
@@ -297,6 +300,11 @@ def convert(args) -> int:
             return 1
         extra_args = ensure_langs(tess, args.lang)
 
+    out = resolve_out(args, src)
+    sink = None
+    if args.images:
+        sink = ImageSink(out.parent / f"{out.stem}_images", f"{out.stem}_images")
+
     try:
         if ext in misc_engine.BINARY_OFFICE_EXTS:
             soffice = misc_engine.find_soffice()
@@ -309,7 +317,7 @@ def convert(args) -> int:
                 converted = misc_engine.convert_binary_office(src, soffice, Path(td))
                 cext = converted.suffix.lower()
                 sections, stats, title = convert_modern(
-                    converted, cext, args, tess, extra_args)
+                    converted, cext, args, tess, extra_args, sink=sink)
                 stats["detail"] = f"{stats['detail']} ({ext} via LibreOffice)"
         elif ext in misc_engine.RTF_ODF_EXTS:
             pandoc = misc_engine.find_pandoc()
@@ -321,18 +329,20 @@ def convert(args) -> int:
             sections, stats = misc_engine.convert_with_pandoc(src, pandoc)
             title = src.stem
         else:
-            sections, stats, title = convert_modern(src, ext, args, tess, extra_args)
+            sections, stats, title = convert_modern(src, ext, args, tess, extra_args, sink=sink)
     except SystemExit:
         raise
     except Exception as e:
         print(f"ERROR: conversion failed: {e}", file=sys.stderr)
         return 1
 
-    out = resolve_out(args, src)
+    detail = stats.get("detail", "")
+    if sink is not None and sink.saved:
+        detail = f"{detail} + {sink.saved} image(s)"
     lines = [
         f"# {title}",
         "",
-        f"> Source: {src.name} -> Markdown ({stats.get('detail', '')}).",
+        f"> Source: {src.name} -> Markdown ({detail}).",
         "",
     ]
     for heading, body in sections:
@@ -345,7 +355,7 @@ def convert(args) -> int:
 
     failures = stats.get("failures", [])
     print(f"done: {len(sections)} section(s) "
-          f"({stats.get('detail', '')}) -> {out} ({out.stat().st_size:,} bytes)")
+          f"({detail}) -> {out} ({out.stat().st_size:,} bytes)")
     if failures:
         print("failed: " + ", ".join(f"page {p} ({e})" for p, e in failures))
         return 1
@@ -371,6 +381,8 @@ def parse_args(argv=None):
     ap.add_argument("--mode", choices=["auto", "digital", "ocr"], default="auto",
                     help="PDF page routing: auto detects scanned pages (default)")
     ap.add_argument("--out", type=Path, help="output .md file or existing directory (default: next to input)")
+    ap.add_argument("--images", action="store_true",
+                    help="extract embedded images into <output stem>_images/ and reference them in the markdown (docx/pptx/xlsx/pdf)")
     args = ap.parse_args(argv)
     if not args.setup and not args.install_system and not args.file:
         ap.error("an input file is required (or use --setup)")

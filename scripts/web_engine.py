@@ -23,6 +23,10 @@ def html_to_md(html) -> str:
     meta = (element.ProcessingInstruction, element.Declaration, element.CData)
     for node in soup.find_all(string=lambda s: isinstance(s, meta)):
         node.extract()
+    for img in soup.find_all("img"):  # auto-generated alt text can contain raw newlines
+        alt = img.get("alt")
+        if alt:
+            img["alt"] = re.sub(r"\s+", " ", alt).strip()
     md = markdownify(str(soup), heading_style="ATX")
     # inline base64 images (mammoth embeds docx images this way) bloat the .md
     md = re.sub(r"!\[[^\]]*\]\(data:[^)]*\)", "*[image]*", md)

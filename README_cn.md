@@ -96,6 +96,7 @@ python scripts/document_to_markdown.py --setup --install-system   # 一次性：
 |---|---|---|
 | `--start N` / `--end N` | 整份文档 | 范围（从 1 开始，含首尾；适用于 PDF 页码、PPTX 幻灯片） |
 | `--out FILE_OR_DIR` | `<输入文件所在目录>/<文件名>.md` | 输出 Markdown 的路径；不会覆盖来自不同来源的文件（自动改用 `<stem>.<ext>.md`） |
+| `--images` | 关闭 | 将内嵌图片导出至 `<输出文件名>_images/`，并以相对网址链接（DOCX／PPTX／XLSX／PDF）；未开启时图片保持 `*[image]*` 占位符 |
 | `--lang eng+chi_tra` | `eng` | Tesseract 语言；缺少的语言数据会自动下载 |
 | `--mode auto\|digital\|ocr` | `auto` | PDF 页面处理方式：auto = 逐页自动检测 |
 | `--dpi N` | `300` | OCR 页面的渲染分辨率（DPI） |

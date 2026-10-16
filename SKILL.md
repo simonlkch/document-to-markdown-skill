@@ -41,6 +41,7 @@ Convert any document into one Markdown file, ready to feed to an AI. PDF pages k
    Options:
    - `--start N` / `--end N` — 1-based inclusive range (PDF pages, PPTX slides)
    - `--out FILE_OR_DIR` — output `.md` (default: `<input folder>/<stem>.md`)
+   - `--images` — extract embedded images into `<output stem>_images/` (DOCX/PPTX/XLSX/PDF) and reference them with relative links; default keeps `*[image]*` placeholders
    - `--lang eng+chi_tra` — OCR languages; missing tessdata auto-downloads into `<skill dir>/tessdata/`
    - `--mode auto|digital|ocr` — PDF page routing (default auto)
    - `--dpi N` — render DPI for OCR pages (default 300)

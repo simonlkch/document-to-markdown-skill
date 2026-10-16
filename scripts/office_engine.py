@@ -8,14 +8,27 @@ from md_utils import demote_headings, md_table
 
 # ------------------------------------------------------------------ docx
 
-def convert_docx(path: Path, log=print):
+def _docx_image_handler(sink):
+    """mammoth image handler: save the embedded image, return a relative src."""
+
+    def handler(image):
+        with image.open() as stream:
+            return {"src": sink.save_mime(stream.read(), getattr(image, "content_type", ""))}
+
+    return handler
+
+
+def convert_docx(path: Path, log=print, sink=None):
     """Word document -> markdown via mammoth (docx->semantic HTML) + markdownify."""
     import mammoth
 
     from web_engine import html_to_md
 
+    kwargs = {}
+    if sink is not None:
+        kwargs["convert_image"] = mammoth.images.img_element(_docx_image_handler(sink))
     with open(path, "rb") as f:
-        result = mammoth.convert_to_html(f)
+        result = mammoth.convert_to_html(f, **kwargs)
     if result.messages:
         log(f"  (docx: {len(result.messages)} conversion note(s))")
     md = demote_headings(html_to_md(result.value), 1)
@@ -24,13 +37,13 @@ def convert_docx(path: Path, log=print):
 
 # ------------------------------------------------------------------ pptx
 
-def _shape_md(shape) -> list[str]:
+def _shape_md(shape, sink=None) -> list[str]:
     from pptx.enum.shapes import MSO_SHAPE_TYPE
 
     out: list[str] = []
     if shape.shape_type == MSO_SHAPE_TYPE.GROUP:
         for sub in shape.shapes:
-            out += _shape_md(sub)
+            out += _shape_md(sub, sink)
     elif getattr(shape, "has_table", False):
         rows = [[cell.text for cell in row.cells] for row in shape.table.rows]
         table = md_table(rows)
@@ -39,7 +52,14 @@ def _shape_md(shape) -> list[str]:
     elif getattr(shape, "has_chart", False):
         out.append("*[chart]*")
     elif shape.shape_type in (MSO_SHAPE_TYPE.PICTURE, MSO_SHAPE_TYPE.LINKED_PICTURE):
-        out.append("*[image]*")
+        if sink is not None:
+            try:
+                img = shape.image
+                out.append(f"![]({sink.save(img.blob, img.ext)})")
+            except Exception:
+                out.append("*[image]*")
+        else:
+            out.append("*[image]*")
     elif getattr(shape, "has_text_frame", False):
         lines = []
         for para in shape.text_frame.paragraphs:
@@ -53,7 +73,7 @@ def _shape_md(shape) -> list[str]:
     return out
 
 
-def convert_pptx(path: Path, *, start: int = 1, end: int | None = None, log=print):
+def convert_pptx(path: Path, *, start: int = 1, end: int | None = None, log=print, sink=None):
     """PowerPoint -> one 'Slide N' section per slide (title, body, tables, notes)."""
     from pptx import Presentation
 
@@ -81,7 +101,7 @@ def convert_pptx(path: Path, *, start: int = 1, end: int | None = None, log=prin
         for shape in slide.shapes:
             if getattr(shape, "_element", None) is title_el:
                 continue
-            parts += _shape_md(shape)
+            parts += _shape_md(shape, sink)
 
         notes = ""
         try:
@@ -116,7 +136,20 @@ def _trim_rows(rows: list[list]) -> list[list]:
     return rows
 
 
-def convert_xlsx(path: Path, log=print):
+def _xlsx_sheet_images(ws, sink) -> list[str]:
+    """Save the sheet's embedded images (non-read-only mode only)."""
+    refs: list[str] = []
+    for img in getattr(ws, "_images", []):
+        try:
+            data = img._data()
+            fmt = getattr(img, "format", None) or "png"
+            refs.append(f"![]({sink.save(data, str(fmt))})")
+        except Exception:
+            continue
+    return refs
+
+
+def convert_xlsx(path: Path, log=print, sink=None):
     """Excel workbook -> one 'Sheet: name' section per worksheet, rows as pipe tables."""
     import warnings
 
@@ -125,12 +158,17 @@ def convert_xlsx(path: Path, log=print):
     sections: list[tuple[str, str]] = []
     with warnings.catch_warnings():  # openpyxl "Unknown extension" noise on some files
         warnings.simplefilter("ignore", UserWarning)
-        wb = load_workbook(str(path), read_only=True, data_only=True)
+        # embedded images are unavailable in read-only mode, so only use it without sink
+        wb = load_workbook(str(path), read_only=sink is None, data_only=True)
         for ws in wb.worksheets:
             rows = [["" if v is None else v for v in row]
                     for row in ws.iter_rows(values_only=True)]
             rows = _trim_rows(rows)
             body = md_table(rows) if rows else "(empty sheet)"
+            if sink is not None:
+                refs = _xlsx_sheet_images(ws, sink)
+                if refs:
+                    body = f"{body}\n\n" + "\n\n".join(refs)
             sections.append((f"Sheet: {ws.title}", body))
         wb.close()
     if not sections:

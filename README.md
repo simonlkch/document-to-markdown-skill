@@ -98,6 +98,7 @@ Standalone options:
 |---|---|---|
 | `--start N` / `--end N` | whole file | 1-based inclusive range (PDF pages, PPTX slides) |
 | `--out FILE_OR_DIR` | `<input dir>/<stem>.md` | output markdown path; never overwrites a file from a different source (falls back to `<stem>.<ext>.md`) |
+| `--images` | off | extract embedded images into `<output stem>_images/` and link them with relative URLs (DOCX/PPTX/XLSX/PDF); without it images stay as `*[image]*` placeholders |
 | `--lang eng+chi_tra` | `eng` | Tesseract languages; missing language data auto-downloads |
 | `--mode auto\|digital\|ocr` | `auto` | PDF page routing: auto = per-page detection |
 | `--dpi N` | `300` | render DPI for OCR pages |

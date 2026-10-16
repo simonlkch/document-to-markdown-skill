@@ -30,10 +30,33 @@ def pdf_title(path: Path) -> str:
         return ""
 
 
+def _page_image_refs(doc, page, sink, seen: set) -> list[str]:
+    """First-occurrence refs for the page's embedded images (xref-deduped)."""
+    refs: list[str] = []
+    try:
+        infos = page.get_images(full=True)
+    except Exception:
+        return refs
+    for info in infos:
+        xref = info[0]
+        if xref in seen:
+            continue
+        try:
+            extracted = doc.extract_image(xref)
+        except Exception:
+            seen.add(xref)
+            continue
+        seen.add(xref)
+        if extracted.get("width", 0) * extracted.get("height", 0) < 1024:
+            continue  # tiny decorations / spacers
+        refs.append(f"![]({sink.save(extracted['image'], extracted.get('ext', 'png'))})")
+    return refs
+
+
 def convert_pdf(path: Path, *, start: int = 1, end: int | None = None, dpi: int = 300,
                 lang: str = "eng", mode: str = "auto", tess=None,
                 extra_args: list[str] | None = None, log=print,
-                progress_every: int = 25):
+                progress_every: int = 25, sink=None):
     """Return (sections, stats). sections: list[(heading, body)] with heading = 'Page N'."""
     extra_args = extra_args or []
     fitz = pymupdf()
@@ -50,6 +73,7 @@ def convert_pdf(path: Path, *, start: int = 1, end: int | None = None, dpi: int 
     digital = ocr = 0
     failures: list[tuple[int, str]] = []
     sections: list[tuple[str, str]] = []
+    seen_images: set[int] = set()
     for i, pno in enumerate(range(start - 1, end), 1):
         pnum = pno + 1
         try:
@@ -67,7 +91,13 @@ def convert_pdf(path: Path, *, start: int = 1, end: int | None = None, dpi: int 
                 ocr += 1
             else:
                 digital += 1
-            sections.append((f"Page {pnum}", tidy(text)))
+            body = tidy(text)
+            if sink is not None:
+                refs = _page_image_refs(doc, page, sink, seen_images)
+                if refs:
+                    joined = "\n\n".join(refs)
+                    body = f"{body}\n\n{joined}" if body else joined
+            sections.append((f"Page {pnum}", body))
         except Exception as e:
             failures.append((pnum, str(e)))
             sections.append((f"Page {pnum}", ""))
