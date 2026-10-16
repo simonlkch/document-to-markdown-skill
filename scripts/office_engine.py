@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from md_utils import demote_headings, md_table, tidy
+from md_utils import demote_headings, md_table
 
 
 # ------------------------------------------------------------------ docx
@@ -11,14 +11,14 @@ from md_utils import demote_headings, md_table, tidy
 def convert_docx(path: Path, log=print):
     """Word document -> markdown via mammoth (docx->semantic HTML) + markdownify."""
     import mammoth
-    from markdownify import markdownify
+
+    from web_engine import html_to_md
 
     with open(path, "rb") as f:
         result = mammoth.convert_to_html(f)
     if result.messages:
         log(f"  (docx: {len(result.messages)} conversion note(s))")
-    md = markdownify(result.value, heading_style="ATX")
-    md = demote_headings(tidy(md), 1)
+    md = demote_headings(html_to_md(result.value), 1)
     return [(None, md)], {"detail": "Word document (docx)"}
 
 

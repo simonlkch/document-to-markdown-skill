@@ -7,7 +7,8 @@ from pathlib import Path
 from md_utils import demote_headings, tidy
 
 
-def _html_to_md(html) -> str:
+def html_to_md(html) -> str:
+    """HTML fragment/document -> markdown; drops scripts and inline base64 images."""
     from bs4 import BeautifulSoup
     from bs4 import element
     from markdownify import markdownify
@@ -22,12 +23,16 @@ def _html_to_md(html) -> str:
     meta = (element.ProcessingInstruction, element.Declaration, element.CData)
     for node in soup.find_all(string=lambda s: isinstance(s, meta)):
         node.extract()
-    return tidy(markdownify(str(soup), heading_style="ATX"))
+    md = markdownify(str(soup), heading_style="ATX")
+    # inline base64 images (mammoth embeds docx images this way) bloat the .md
+    md = re.sub(r"!\[[^\]]*\]\(data:[^)]*\)", "*[image]*", md)
+    md = re.sub(r"\*{2,}(\*\[image\]\*)\*{2,}", r"\1", md)  # unwrap bold/italic around placeholder
+    return tidy(md)
 
 
 def convert_html(path: Path, log=print):
     """HTML page/file -> markdown, headings demoted so the document title stays H1."""
-    md = demote_headings(_html_to_md(path.read_bytes()), 1)
+    md = demote_headings(html_to_md(path.read_bytes()), 1)
     return [(None, md)], {"detail": "HTML"}
 
 
@@ -50,7 +55,7 @@ def convert_epub(path: Path, log=print):
         title = head.get_text(" ", strip=True) if head else ""
         if head is not None:
             head.extract()  # avoid duplicating it as both heading and body
-        body = demote_headings(_html_to_md(str(soup)), 1)
+        body = demote_headings(html_to_md(str(soup)), 1)
         if not title and not body:
             continue
         heading = title or f"Section {len(sections) + 1}"
