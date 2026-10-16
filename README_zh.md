@@ -32,7 +32,7 @@
 ### 安裝到你的 AI coding CLI（推薦）
 
 ```bash
-git clone https://github.com/<your-github-username>/document-to-markdown-skill.git
+git clone https://github.com/simonlkch/document-to-markdown-skill.git
 cd document-to-markdown-skill
 python install.py
 ```
@@ -57,7 +57,7 @@ python install.py --target-dir /path/to/repo/.claude/skills/document-to-markdown
 ### 透過社群安裝器
 
 ```bash
-npx skills add <your-github-username>/document-to-markdown-skill
+npx skills add simonlkch/document-to-markdown-skill
 ```
 
 [skills.sh](https://skills.sh) 可以一次安裝到 75 個以上的 agent（第三方工具）。

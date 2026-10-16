@@ -32,7 +32,7 @@ Works with Claude Code, OpenAI Codex CLI, opencode, pi, Qoder — anything that 
 ### Into your AI coding CLI (recommended)
 
 ```bash
-git clone https://github.com/<your-github-username>/document-to-markdown-skill.git
+git clone https://github.com/simonlkch/document-to-markdown-skill.git
 cd document-to-markdown-skill
 python install.py
 ```
@@ -57,7 +57,7 @@ python install.py --target-dir /path/to/repo/.claude/skills/document-to-markdown
 ### Via the community skills installer
 
 ```bash
-npx skills add <your-github-username>/document-to-markdown-skill
+npx skills add simonlkch/document-to-markdown-skill
 ```
 
 [skills.sh](https://skills.sh) installs into 75+ agents at once (third-party tool).
