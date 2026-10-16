@@ -11,8 +11,10 @@ Supported (auto-detected by extension):
     .rtf .odt .ods .odp                      via pandoc, if installed
     .doc .xls .ppt                           via LibreOffice (soffice), if installed
 
-First run (creates .venv next to this skill and installs the Python deps):
+First run (creates .venv next to this skill, installs the Python deps, checks system tools):
     python scripts/document_to_markdown.py --setup
+    python scripts/document_to_markdown.py --setup --install-system
+        (also tries winget/brew/apt-get to install missing Tesseract and pandoc)
 Then run with the venv python:
     .venv/Scripts/python scripts/document_to_markdown.py book.pdf     (Windows)
     .venv/bin/python     scripts/document_to_markdown.py book.pdf     (macOS/Linux)
@@ -49,6 +51,26 @@ DEP_MODULES = {"pymupdf": "pymupdf", "mammoth": "mammoth", "markdownify": "markd
                "beautifulsoup4": "bs4", "python-pptx": "pptx", "openpyxl": "openpyxl",
                "ebooklib": "ebooklib", "pillow": "PIL"}
 
+OS_KEY = "windows" if IS_WIN else ("macos" if sys.platform == "darwin" else "linux")
+
+# best-effort auto-install commands per OS; the first one whose executable is on
+# PATH gets used (--install-system). LibreOffice is deliberately NOT here: it is a
+# ~350 MB download and only needed for legacy .doc/.xls/.ppt.
+INSTALL_CMDS = {
+    "tesseract": {
+        "windows": [["winget", "install", "--id", "UB-Mannheim.TesseractOCR", "-e",
+                     "--accept-source-agreements", "--accept-package-agreements"]],
+        "macos": [["brew", "install", "tesseract"]],
+        "linux": [["sudo", "-n", "apt-get", "install", "-y", "tesseract-ocr"]],
+    },
+    "pandoc": {
+        "windows": [["winget", "install", "--id", "JohnMacFarlane.Pandoc", "-e",
+                     "--accept-source-agreements", "--accept-package-agreements"]],
+        "macos": [["brew", "install", "pandoc"]],
+        "linux": [["sudo", "-n", "apt-get", "install", "-y", "pandoc"]],
+    },
+}
+
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff"}
 TEXT_EXTS = {".txt", ".log", ".rst"}
 MD_EXTS = {".md", ".markdown"}
@@ -84,7 +106,24 @@ def missing_deps() -> list[str]:
     return missing
 
 
-def cmd_setup() -> int:
+def _try_install(name: str, cmds: list[list[str]], verify) -> bool:
+    """Best-effort auto-install: run the first installer found on PATH, then re-probe."""
+    for cmd in cmds:
+        if shutil.which(cmd[0]) is None:
+            continue
+        print(f"  installing {name}: {' '.join(cmd)}  (can take a few minutes)")
+        try:
+            subprocess.run(cmd, timeout=900)
+        except (subprocess.TimeoutExpired, OSError) as e:
+            print(f"  {name}: installer failed ({type(e).__name__})")
+            continue
+        if verify():
+            return True
+        print(f"  {name}: installer finished but the tool is still not detectable")
+    return False
+
+
+def cmd_setup(install_system: bool = False) -> int:
     print(f"skill dir : {SKILL_DIR}")
 
     if not VENV_PY.exists():
@@ -122,21 +161,33 @@ def cmd_setup() -> int:
         print("deps      : installed")
 
     tess = find_tesseract()
+    if tess is None and install_system:
+        if _try_install("tesseract", INSTALL_CMDS["tesseract"][OS_KEY], find_tesseract):
+            tess = find_tesseract()
     if tess:
         print(f"tesseract : {tess}")
         print(f"            {tesseract_version(tess)}")
     else:
         print("tesseract : NOT FOUND - OCR (scanned PDFs, images) will not work.")
+        if install_system:
+            print("            automatic install did not succeed; run one of these manually:")
         print("            Windows: winget install --id UB-Mannheim.TesseractOCR -e")
         print("            macOS  : brew install tesseract")
-        print("            Linux  : apt install tesseract-ocr")
+        print("            Linux  : sudo apt-get install -y tesseract-ocr")
 
     pandoc = misc_engine.find_pandoc()
+    if pandoc is None and install_system:
+        if _try_install("pandoc", INSTALL_CMDS["pandoc"][OS_KEY], misc_engine.find_pandoc):
+            pandoc = misc_engine.find_pandoc()
     if pandoc:
         print(f"pandoc    : {pandoc}  (enables .rtf/.odt/.ods/.odp)")
     else:
         print("pandoc    : not found (optional; needed for .rtf/.odt/.ods/.odp)")
+        if install_system:
+            print("            automatic install did not succeed; run one of these manually:")
         print("            Windows: winget install --id JohnMacFarlane.Pandoc -e")
+        print("            macOS  : brew install pandoc")
+        print("            Linux  : sudo apt-get install -y pandoc")
     soffice = misc_engine.find_soffice()
     if soffice:
         print(f"libreoffice: {soffice}  (enables .doc/.xls/.ppt)")
@@ -310,6 +361,8 @@ def parse_args(argv=None):
     ap.add_argument("file", nargs="?", help="input file to convert")
     ap.add_argument("--setup", action="store_true",
                     help="create the skill venv, install Python deps, check Tesseract/pandoc/LibreOffice, then exit")
+    ap.add_argument("--install-system", action="store_true",
+                    help="with --setup: also try installing missing Tesseract/pandoc via winget/brew/apt-get")
     ap.add_argument("--start", type=int, default=1, help="first page/slide, 1-based (PDF, PPTX)")
     ap.add_argument("--end", type=int, help="last page/slide, inclusive (PDF, PPTX)")
     ap.add_argument("--dpi", type=int, default=300, help="render DPI for OCR (PDF; default 300)")
@@ -319,7 +372,7 @@ def parse_args(argv=None):
                     help="PDF page routing: auto detects scanned pages (default)")
     ap.add_argument("--out", type=Path, help="output .md file or existing directory (default: next to input)")
     args = ap.parse_args(argv)
-    if not args.setup and not args.file:
+    if not args.setup and not args.install_system and not args.file:
         ap.error("an input file is required (or use --setup)")
     return args
 
@@ -331,8 +384,8 @@ def main() -> int:
         except Exception:
             pass
     args = parse_args()
-    if args.setup:
-        return cmd_setup()
+    if args.setup or args.install_system:
+        return cmd_setup(install_system=args.install_system)
     missing = missing_deps()
     if missing:
         print(f"Missing Python packages: {', '.join(missing)}\n"

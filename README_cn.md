@@ -65,7 +65,7 @@ npx skills add simonlkch/document-to-markdown-skill
 ### 作为普通 CLI 使用
 
 ```bash
-python scripts/document_to_markdown.py --setup                       # 一次性：创建 .venv、安装依赖
+python scripts/document_to_markdown.py --setup --install-system   # 一次性：创建 .venv、安装依赖＋Tesseract／pandoc
 .venv/Scripts/python scripts/document_to_markdown.py report.docx     # Windows
 .venv/bin/python     scripts/document_to_markdown.py report.docx     # macOS / Linux
 ```
@@ -82,7 +82,7 @@ python scripts/document_to_markdown.py --setup                       # 一次性
 >
 > "Convert sales.xlsx to Markdown."
 
-首次使用时，agent 会自动帮你完成环境设置：创建技能专属的 `.venv`、安装依赖、检查 Tesseract。如果缺少 Tesseract（只有扫描版 PDF 与图片才需要），它会提供一行安装命令让你执行。
+首次使用时，agent 会自动帮你完成环境设置：创建技能专属的 `.venv`、安装依赖，并检查系统工具（Tesseract、pandoc、LibreOffice）。缺少的 Tesseract／pandoc 会尽量自动安装（winget／brew／apt-get）；无法自动安装时，会提供一行命令让你执行。
 
 你也可以明确调用这个技能：`/document-to-markdown-skill`（Qoder、Claude Code）、`$document-to-markdown-skill`（Codex）、`/skill:document-to-markdown-skill`（pi）。
 
@@ -103,11 +103,11 @@ python scripts/document_to_markdown.py --setup                       # 一次性
 ## 系统要求
 
 - **Python 3.9+**——仅用于首次环境设置与运行脚本。
-- **Tesseract**——只有扫描版 PDF 与图片文件才需要（数字版 PDF、Office 文件等无需安装）：
+- **Tesseract**——只有扫描版 PDF 与图片文件才需要（数字版 PDF、Office 文件等无需安装）。`--setup --install-system` 会尝试自动安装；手动安装：
   - Windows：`winget install --id UB-Mannheim.TesseractOCR -e`
   - macOS：`brew install tesseract`
   - Linux：`apt install tesseract-ocr`
-- **可选**：[pandoc](https://pandoc.org/) 用于 RTF / ODT / ODS / ODP；LibreOffice 用于旧版 `.doc` / `.xls` / `.ppt`。缺少时脚本会提示安装命令。
+- **可选**：[pandoc](https://pandoc.org/) 用于 RTF / ODT / ODS / ODP（`--install-system` 也会尝试自动安装）；LibreOffice 用于旧版 `.doc` / `.xls` / `.ppt`（不会自动安装）。缺少时脚本会提示安装命令。
 
 ## 工作原理
 

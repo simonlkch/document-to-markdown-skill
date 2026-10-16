@@ -90,7 +90,18 @@ BINARY_OFFICE_EXTS = {".doc": ".docx", ".xls": ".xlsx", ".ppt": ".pptx"}
 
 def find_pandoc() -> Path | None:
     p = shutil.which("pandoc")
-    return Path(p) if p else None
+    if p:
+        return Path(p)
+    if IS_WIN:
+        cands = [Path(r"C:\Program Files\Pandoc\pandoc.exe"),
+                 Path(r"C:\Program Files (x86)\Pandoc\pandoc.exe")]
+        local = os.environ.get("LOCALAPPDATA")
+        if local:
+            cands.append(Path(local) / "Pandoc/pandoc.exe")
+        for c in cands:
+            if c.is_file():
+                return c
+    return None
 
 
 def find_soffice() -> Path | None:

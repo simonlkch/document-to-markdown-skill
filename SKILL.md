@@ -22,13 +22,14 @@ Convert any document into one Markdown file, ready to feed to an AI. PDF pages k
 
 ## Workflow
 
-1. **First time only — setup** (creates `.venv/` inside this skill folder, pip-installs the Python deps, checks Tesseract):
+1. **First time only — setup** (creates `.venv/` inside this skill folder, pip-installs the Python deps, checks/installs system tools):
    ```
-   python "<skill dir>/scripts/document_to_markdown.py" --setup
+   python "<skill dir>/scripts/document_to_markdown.py" --setup --install-system
    ```
-   Use any system Python 3.9+ (`py -3` or `python` on Windows, `python3` elsewhere).
-   - If Tesseract is missing, setup prints the install command (`winget install --id UB-Mannheim.TesseractOCR -e` on Windows). Hand it to the user to run; then re-run `--setup` to verify. Non-image formats still work without Tesseract.
-   - pandoc / LibreOffice are optional; setup reports their status and install hints.
+   Use any system Python 3.9+ (`py -3` or `python` on Windows, `python3` elsewhere). The install attempt can take a few minutes — allow a long command timeout.
+   - `--install-system` also tries to install missing **Tesseract** and **pandoc** via `winget` / `brew` / `apt-get` (Windows installers may show a UAC prompt), then re-verifies.
+   - If a tool is still missing (no package manager, no sudo, installer blocked), hand the user the printed manual command to run; then re-run `--setup` to verify. Non-OCR formats still work without Tesseract.
+   - LibreOffice is never auto-installed (large download; needed only for legacy `.doc/.xls/.ppt`) — its status is reported only.
    - Skip this step if `<skill dir>/.venv` already exists.
 
 2. **Convert** (always use the skill venv python):

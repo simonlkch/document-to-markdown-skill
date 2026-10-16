@@ -65,7 +65,7 @@ npx skills add simonlkch/document-to-markdown-skill
 ### As a plain CLI
 
 ```bash
-python scripts/document_to_markdown.py --setup                       # once: create .venv, install deps
+python scripts/document_to_markdown.py --setup --install-system   # once: create .venv, install deps + Tesseract/pandoc
 .venv/Scripts/python scripts/document_to_markdown.py report.docx     # Windows
 .venv/bin/python     scripts/document_to_markdown.py report.docx     # macOS / Linux
 ```
@@ -84,7 +84,7 @@ Install it (above), then just ask your agent in natural language — the skill t
 >
 > "把這份簡報 PPT 轉成 Markdown。"
 
-On first use the agent sets up the environment for you: it creates the skill's own `.venv`, installs the Python dependencies, and checks Tesseract. If Tesseract is missing (only needed for scanned PDFs and images), it gives you the one-line install command to run.
+On first use the agent sets up the environment for you: it creates the skill's own `.venv`, installs the Python dependencies, and checks the system tools (Tesseract, pandoc, LibreOffice). Missing Tesseract/pandoc are auto-installed when possible (winget / brew / apt-get); if that fails you get a one-line command to run.
 
 You can also invoke the skill explicitly by name: `/document-to-markdown-skill` (Qoder, Claude Code), `$document-to-markdown-skill` (Codex), `/skill:document-to-markdown-skill` (pi).
 
@@ -105,11 +105,11 @@ Standalone options:
 ## Requirements
 
 - **Python 3.9+** — only for the first-run setup and to run the script.
-- **Tesseract** — needed only for scanned PDFs and image files (digital PDFs, Office files, etc. work without it):
+- **Tesseract** — needed only for scanned PDFs and image files (digital PDFs, Office files, etc. work without it). `--setup --install-system` tries to install it automatically; manual fallback:
   - Windows: `winget install --id UB-Mannheim.TesseractOCR -e`
   - macOS: `brew install tesseract`
   - Linux: `apt install tesseract-ocr`
-- **Optional**: [pandoc](https://pandoc.org/) for RTF / ODT / ODS / ODP; LibreOffice for legacy `.doc` / `.xls` / `.ppt`. The script prints install hints if they are missing.
+- **Optional**: [pandoc](https://pandoc.org/) for RTF / ODT / ODS / ODP (also auto-installed by `--install-system`); LibreOffice for legacy `.doc` / `.xls` / `.ppt` (never auto-installed). The script prints install hints if they are missing.
 
 ## How it works
 
