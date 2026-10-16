@@ -1,11 +1,11 @@
 ---
 name: document-to-markdown-skill
-description: Convert any document into Markdown (.md) for AI ingestion - PDF (digital or scanned), Word DOCX, PowerPoint PPTX, Excel XLSX, images (PNG/JPG/TIFF, via Tesseract OCR), HTML, EPUB, CSV/JSON/XML/TXT, and legacy .doc/.xls/.ppt/.rtf/.odt. Use when the user asks to convert, extract, or turn any file into Markdown or text ("轉成 md", "轉做 markdown", "document to markdown", "convert this file to markdown", "將個 PDF／Word／Excel 變做 markdown", "OCR this scanned PDF", "extract text from this document"). Handles digital and scanned PDFs automatically, manages its own Python environment (venv) and Tesseract language data.
+description: Convert any document into Markdown (.md) for AI ingestion - PDF (digital or scanned), Word DOCX, PowerPoint PPTX, Excel XLSX, images (PNG/JPG/TIFF, via Tesseract OCR), HTML, EPUB, CSV/JSON/XML/TXT, and legacy .doc/.xls/.ppt/.rtf/.odt. Use when the user asks to convert, extract, or turn any file into Markdown or text ("convert this file to markdown", "document to markdown", "turn this PDF into md", "extract text from this document", "OCR this scanned PDF"). Handles digital and scanned PDFs automatically, manages its own Python environment (venv) and Tesseract language data.
 ---
 
 # Document → Markdown
 
-Convert any document into one Markdown file, ready to feed to an AI. PDF pages keep `## Page N` separators, slides `## Slide N`, sheets `## Sheet: name`, EPUB chapters `## 標題`.
+Convert any document into one Markdown file, ready to feed to an AI. PDF pages keep `## Page N` separators, slides `## Slide N`, sheets `## Sheet: name`, EPUB chapters use the chapter's own title as the `##` heading.
 
 | Format | Engine |
 |---|---|
