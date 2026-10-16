@@ -1,5 +1,7 @@
 # pdf-to-markdown
 
+[English](README.md) | [繁體中文](README_zh.md) | [简体中文](README_cn.md)
+
 An [Agent Skill](https://agentskills.io) (and standalone CLI) that converts PDFs into clean Markdown for AI ingestion — **including scanned, image-only PDFs** via Tesseract OCR.
 
 - **One `.md` per PDF** — every page under a `## Page N` heading, ready to feed to any AI.
@@ -52,13 +54,25 @@ python scripts/pdf_to_markdown.py --setup                       # once: create .
 .venv/bin/python     scripts/pdf_to_markdown.py book.pdf        # macOS / Linux
 ```
 
-## Usage (as a skill)
+## Usage
 
-Just ask your agent:
+### As a skill (recommended)
 
-> convert book.pdf to markdown
+Install it (above), then just ask your agent in natural language — the skill triggers automatically:
 
-The agent sets up the environment on first use, OCRs scanned pages, and hands you `book.md`.
+> "Convert book.pdf to Markdown."
+>
+> "Extract the text of this scanned PDF into one .md file."
+>
+> "PDF 轉 Markdown" / "把這個掃描 PDF 轉成 Markdown。"
+
+On first use the agent sets up the environment for you: it creates the skill's own `.venv`, installs PyMuPDF, and checks Tesseract. If Tesseract is missing (only needed for scanned PDFs), it gives you the one-line install command to run.
+
+You can also invoke the skill explicitly by name: `/pdf-to-markdown` (Qoder, Claude Code), `$pdf-to-markdown` (Codex), `/skill:pdf-to-markdown` (pi).
+
+The result is a single Markdown file next to your PDF — every page as a `## Page N` section, with a self-describing header — ready to feed to any AI.
+
+### As a CLI
 
 Standalone options:
 
@@ -83,6 +97,10 @@ Standalone options:
 1. Each page is tested for a usable text layer. Enough text → it is extracted directly with PyMuPDF.
 2. Otherwise the page is rendered at 300 DPI (grayscale) and OCR'd with Tesseract.
 3. Pages are written as `## Page N` sections into one Markdown file — with a usage header so the file is self-describing when fed to an AI.
+
+## Uninstall
+
+Delete the skill directory from your CLI's skills folder, e.g. `~/.claude/skills/pdf-to-markdown/` or `~/.qoder/skills/pdf-to-markdown/`.
 
 ## License
 
