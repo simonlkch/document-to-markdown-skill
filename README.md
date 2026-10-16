@@ -1,23 +1,39 @@
-# pdf-to-markdown-skill
+# document-to-markdown-skill
 
 [English](README.md) | [繁體中文](README_zh.md) | [简体中文](README_cn.md)
 
-An [Agent Skill](https://agentskills.io) (and standalone CLI) that converts PDFs into clean Markdown for AI ingestion — **including scanned, image-only PDFs** via Tesseract OCR.
+An [Agent Skill](https://agentskills.io) (and standalone CLI) that converts **any document into clean Markdown for AI ingestion** — PDF (digital or scanned), Word, PowerPoint, Excel, images, HTML, EPUB, CSV, JSON and more.
 
-- **One `.md` per PDF** — every page under a `## Page N` heading, ready to feed to any AI.
-- **Digital + scanned in one pass** — digital pages use the embedded text layer; scanned pages are auto-detected and OCR'd.
-- **Self-contained** — first run creates its own `.venv` and installs PyMuPDF; missing OCR language data downloads on demand.
+- **One `.md` per document** — ready to feed to any AI. PDF pages keep `## Page N` sections, slides `## Slide N`, sheets `## Sheet: name`, EPUB chapters `## 標題`.
+- **Digital + scanned PDFs in one pass** — digital pages use the embedded text layer; scanned pages are auto-detected and OCR'd with Tesseract.
+- **Self-contained** — first run creates its own `.venv` and installs the Python dependencies; missing OCR language data downloads on demand.
 - **Runs fully offline** — no cloud APIs, no uploads.
 
 Works with Claude Code, OpenAI Codex CLI, opencode, pi, Qoder — anything that reads the [SKILL.md](https://agentskills.io) format.
+
+## Supported formats
+
+| Format | Engine |
+|---|---|
+| PDF (digital) | text layer via PyMuPDF |
+| PDF (scanned) | auto-detected per page → Tesseract OCR |
+| DOCX | mammoth (headings, tables) |
+| PPTX | python-pptx (slides, bullets, speaker notes, tables) |
+| XLSX | openpyxl (one `## Sheet: name` section per sheet) |
+| PNG / JPG / TIFF / BMP / WebP | Tesseract OCR (multi-frame TIFF becomes `## Page N`) |
+| HTML / EPUB | beautifulsoup4 + markdownify / ebooklib |
+| CSV / TSV | Markdown table |
+| TXT / MD | direct (MD passes through verbatim) |
+| JSON / XML | pretty-printed in a fenced code block |
+| DOC / XLS / PPT, RTF, ODT / ODS / ODP | via LibreOffice (optional) or pandoc (optional), if installed |
 
 ## Install
 
 ### Into your AI coding CLI (recommended)
 
 ```bash
-git clone https://github.com/<your-github-username>/pdf-to-markdown-skill.git
-cd pdf-to-markdown-skill
+git clone https://github.com/<your-github-username>/document-to-markdown-skill.git
+cd document-to-markdown-skill
 python install.py
 ```
 
@@ -25,23 +41,23 @@ python install.py
 
 | Tool | `--target` | Installs to |
 |---|---|---|
-| Claude Code | `claude` | `~/.claude/skills/pdf-to-markdown-skill/` |
-| OpenAI Codex CLI | `codex` | `~/.codex/skills/pdf-to-markdown-skill/` (respects `$CODEX_HOME`) |
-| opencode | `opencode` | `~/.config/opencode/skills/pdf-to-markdown-skill/` |
-| pi | `pi` | `~/.agents/skills/pdf-to-markdown-skill/` (shared skills dir) |
-| Qoder | `qoder` | `~/.qoder/skills/pdf-to-markdown-skill/` |
+| Claude Code | `claude` | `~/.claude/skills/document-to-markdown-skill/` |
+| OpenAI Codex CLI | `codex` | `~/.codex/skills/document-to-markdown-skill/` (respects `$CODEX_HOME`) |
+| opencode | `opencode` | `~/.config/opencode/skills/document-to-markdown-skill/` |
+| pi | `pi` | `~/.agents/skills/document-to-markdown-skill/` (shared skills dir) |
+| Qoder | `qoder` | `~/.qoder/skills/document-to-markdown-skill/` |
 
 ```bash
 python install.py --target all        # every supported CLI
 python install.py --link              # symlink one shared copy (single venv)
 python install.py --list              # show targets + detection status
-python install.py --target-dir /path/to/repo/.claude/skills/pdf-to-markdown-skill   # project-level / custom
+python install.py --target-dir /path/to/repo/.claude/skills/document-to-markdown-skill   # project-level / custom
 ```
 
 ### Via the community skills installer
 
 ```bash
-npx skills add <your-github-username>/pdf-to-markdown-skill
+npx skills add <your-github-username>/document-to-markdown-skill
 ```
 
 [skills.sh](https://skills.sh) installs into 75+ agents at once (third-party tool).
@@ -49,9 +65,9 @@ npx skills add <your-github-username>/pdf-to-markdown-skill
 ### As a plain CLI
 
 ```bash
-python scripts/pdf_to_markdown.py --setup                       # once: create .venv, install PyMuPDF
-.venv/Scripts/python scripts/pdf_to_markdown.py book.pdf        # Windows
-.venv/bin/python     scripts/pdf_to_markdown.py book.pdf        # macOS / Linux
+python scripts/document_to_markdown.py --setup                       # once: create .venv, install deps
+.venv/Scripts/python scripts/document_to_markdown.py report.docx     # Windows
+.venv/bin/python     scripts/document_to_markdown.py report.docx     # macOS / Linux
 ```
 
 ## Usage
@@ -60,17 +76,19 @@ python scripts/pdf_to_markdown.py --setup                       # once: create .
 
 Install it (above), then just ask your agent in natural language — the skill triggers automatically:
 
-> "Convert book.pdf to Markdown."
+> "Convert report.docx to Markdown."
 >
 > "Extract the text of this scanned PDF into one .md file."
 >
-> "PDF 轉 Markdown" / "把這個掃描 PDF 轉成 Markdown。"
+> "幫我將 sales.xlsx 轉做 markdown。"
+>
+> "把這份簡報 PPT 轉成 Markdown。"
 
-On first use the agent sets up the environment for you: it creates the skill's own `.venv`, installs PyMuPDF, and checks Tesseract. If Tesseract is missing (only needed for scanned PDFs), it gives you the one-line install command to run.
+On first use the agent sets up the environment for you: it creates the skill's own `.venv`, installs the Python dependencies, and checks Tesseract. If Tesseract is missing (only needed for scanned PDFs and images), it gives you the one-line install command to run.
 
-You can also invoke the skill explicitly by name: `/pdf-to-markdown-skill` (Qoder, Claude Code), `$pdf-to-markdown-skill` (Codex), `/skill:pdf-to-markdown-skill` (pi).
+You can also invoke the skill explicitly by name: `/document-to-markdown-skill` (Qoder, Claude Code), `$document-to-markdown-skill` (Codex), `/skill:document-to-markdown-skill` (pi).
 
-The result is a single Markdown file next to your PDF — every page as a `## Page N` section, with a self-describing header — ready to feed to any AI.
+The result is a single Markdown file next to your input — with a self-describing header — ready to feed to any AI.
 
 ### As a CLI
 
@@ -78,29 +96,30 @@ Standalone options:
 
 | Option | Default | Meaning |
 |---|---|---|
-| `--start N` / `--end N` | whole PDF | 1-based inclusive page range |
-| `--out FILE_OR_DIR` | `<pdf dir>/<stem>.md` | output markdown path |
+| `--start N` / `--end N` | whole file | 1-based inclusive range (PDF pages, PPTX slides) |
+| `--out FILE_OR_DIR` | `<input dir>/<stem>.md` | output markdown path |
 | `--lang eng+chi_tra` | `eng` | Tesseract languages; missing language data auto-downloads |
-| `--mode auto\|digital\|ocr` | `auto` | page routing: auto = per-page detection |
+| `--mode auto\|digital\|ocr` | `auto` | PDF page routing: auto = per-page detection |
 | `--dpi N` | `300` | render DPI for OCR pages |
 
 ## Requirements
 
 - **Python 3.9+** — only for the first-run setup and to run the script.
-- **Tesseract** — needed only for scanned PDFs (digital PDFs work without it):
+- **Tesseract** — needed only for scanned PDFs and image files (digital PDFs, Office files, etc. work without it):
   - Windows: `winget install --id UB-Mannheim.TesseractOCR -e`
   - macOS: `brew install tesseract`
   - Linux: `apt install tesseract-ocr`
+- **Optional**: [pandoc](https://pandoc.org/) for RTF / ODT / ODS / ODP; LibreOffice for legacy `.doc` / `.xls` / `.ppt`. The script prints install hints if they are missing.
 
 ## How it works
 
-1. Each page is tested for a usable text layer. Enough text → it is extracted directly with PyMuPDF.
-2. Otherwise the page is rendered at 300 DPI (grayscale) and OCR'd with Tesseract.
-3. Pages are written as `## Page N` sections into one Markdown file — with a usage header so the file is self-describing when fed to an AI.
+1. The input extension picks a converter: PyMuPDF (PDF), mammoth (DOCX), python-pptx (PPTX), openpyxl (XLSX), Tesseract (images), bs4/markdownify (HTML), ebooklib (EPUB), direct parsing (CSV/JSON/XML/TXT).
+2. PDF pages are tested for a usable text layer. Enough text → extracted directly; otherwise the page is rendered at 300 DPI and OCR'd.
+3. Everything is assembled into one Markdown file — with a usage header so the file is self-describing when fed to an AI.
 
 ## Uninstall
 
-Delete the skill directory from your CLI's skills folder, e.g. `~/.claude/skills/pdf-to-markdown-skill/` or `~/.qoder/skills/pdf-to-markdown-skill/`.
+Delete the skill directory from your CLI's skills folder, e.g. `~/.claude/skills/document-to-markdown-skill/` or `~/.qoder/skills/document-to-markdown-skill/`.
 
 ## License
 

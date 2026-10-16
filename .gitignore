@@ -2,3 +2,4 @@
 tessdata/
 __pycache__/
 *.pyc
+_scratch/
