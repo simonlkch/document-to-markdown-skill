@@ -190,14 +190,35 @@ def convert_modern(src: Path, ext: str, args, tess, extra_args: list[str], log=p
     raise RuntimeError(f"unsupported format: {ext}")
 
 
+def _same_source(path: Path, src: Path) -> bool:
+    """True if `path` looks like previous output of this tool for the same input file."""
+    try:
+        head = path.read_text(encoding="utf-8", errors="replace")[:400]
+    except OSError:
+        return False
+    return f"> Source: {src.name} ->" in head
+
+
 def resolve_out(args, src: Path) -> Path:
-    if args.out is None:
-        return src.with_suffix(".md")
-    out = args.out.expanduser().resolve()
-    if out.is_dir():
-        return out / (src.stem + ".md")
-    out.parent.mkdir(parents=True, exist_ok=True)
-    return out
+    if args.out is not None:
+        out = args.out.expanduser().resolve()
+        if not out.is_dir():
+            out.parent.mkdir(parents=True, exist_ok=True)
+            return out  # explicit file path: write exactly there
+        base = out
+    else:
+        base = src.parent
+    target = base / (src.stem + ".md")
+    if not target.exists() or _same_source(target, src):
+        return target
+    # target belongs to a different source: keep it, fall back to <stem>.<ext>.md
+    ext = src.suffix.lstrip(".")
+    alt = base / f"{src.stem}.{ext}.md"
+    n = 2
+    while alt.exists() and not _same_source(alt, src):
+        alt = base / f"{src.stem}.{ext}.{n}.md"
+        n += 1
+    return alt
 
 
 def convert(args) -> int:

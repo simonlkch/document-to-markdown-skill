@@ -51,3 +51,4 @@ Convert any document into one Markdown file, ready to feed to an AI. PDF pages k
 - The `<skill dir>` is the folder containing this SKILL.md — resolve it before running scripts.
 - OCR is slow (~1–3 s/page at 300 DPI). For large books run in the background; the script prints progress every 25 pages.
 - The output starts with `# <title>` and a `> Source: <file> -> Markdown (<detail>).` line recording the original filename and conversion detail.
+- Output files are never overwritten silently: if `<stem>.md` already exists from a *different* source file, the tool saves as `<stem>.<ext>.md` instead (re-running the same conversion overwrites its own previous output). An explicit `--out FILE` path is always written as given.
