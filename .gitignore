@@ -1,0 +1,4 @@
+.venv/
+tessdata/
+__pycache__/
+*.pyc
