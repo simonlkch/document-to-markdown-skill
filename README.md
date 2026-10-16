@@ -1,4 +1,4 @@
-# pdf-to-markdown
+# pdf-to-markdown-skill
 
 [English](README.md) | [繁體中文](README_zh.md) | [简体中文](README_cn.md)
 
@@ -16,8 +16,8 @@ Works with Claude Code, OpenAI Codex CLI, opencode, pi, Qoder — anything that 
 ### Into your AI coding CLI (recommended)
 
 ```bash
-git clone https://github.com/<your-github-username>/pdf-to-markdown.git
-cd pdf-to-markdown
+git clone https://github.com/<your-github-username>/pdf-to-markdown-skill.git
+cd pdf-to-markdown-skill
 python install.py
 ```
 
@@ -25,23 +25,23 @@ python install.py
 
 | Tool | `--target` | Installs to |
 |---|---|---|
-| Claude Code | `claude` | `~/.claude/skills/pdf-to-markdown/` |
-| OpenAI Codex CLI | `codex` | `~/.codex/skills/pdf-to-markdown/` (respects `$CODEX_HOME`) |
-| opencode | `opencode` | `~/.config/opencode/skills/pdf-to-markdown/` |
-| pi | `pi` | `~/.agents/skills/pdf-to-markdown/` (shared skills dir) |
-| Qoder | `qoder` | `~/.qoder/skills/pdf-to-markdown/` |
+| Claude Code | `claude` | `~/.claude/skills/pdf-to-markdown-skill/` |
+| OpenAI Codex CLI | `codex` | `~/.codex/skills/pdf-to-markdown-skill/` (respects `$CODEX_HOME`) |
+| opencode | `opencode` | `~/.config/opencode/skills/pdf-to-markdown-skill/` |
+| pi | `pi` | `~/.agents/skills/pdf-to-markdown-skill/` (shared skills dir) |
+| Qoder | `qoder` | `~/.qoder/skills/pdf-to-markdown-skill/` |
 
 ```bash
 python install.py --target all        # every supported CLI
 python install.py --link              # symlink one shared copy (single venv)
 python install.py --list              # show targets + detection status
-python install.py --target-dir /path/to/repo/.claude/skills/pdf-to-markdown   # project-level / custom
+python install.py --target-dir /path/to/repo/.claude/skills/pdf-to-markdown-skill   # project-level / custom
 ```
 
 ### Via the community skills installer
 
 ```bash
-npx skills add <your-github-username>/pdf-to-markdown
+npx skills add <your-github-username>/pdf-to-markdown-skill
 ```
 
 [skills.sh](https://skills.sh) installs into 75+ agents at once (third-party tool).
@@ -68,7 +68,7 @@ Install it (above), then just ask your agent in natural language — the skill t
 
 On first use the agent sets up the environment for you: it creates the skill's own `.venv`, installs PyMuPDF, and checks Tesseract. If Tesseract is missing (only needed for scanned PDFs), it gives you the one-line install command to run.
 
-You can also invoke the skill explicitly by name: `/pdf-to-markdown` (Qoder, Claude Code), `$pdf-to-markdown` (Codex), `/skill:pdf-to-markdown` (pi).
+You can also invoke the skill explicitly by name: `/pdf-to-markdown-skill` (Qoder, Claude Code), `$pdf-to-markdown-skill` (Codex), `/skill:pdf-to-markdown-skill` (pi).
 
 The result is a single Markdown file next to your PDF — every page as a `## Page N` section, with a self-describing header — ready to feed to any AI.
 
@@ -100,7 +100,7 @@ Standalone options:
 
 ## Uninstall
 
-Delete the skill directory from your CLI's skills folder, e.g. `~/.claude/skills/pdf-to-markdown/` or `~/.qoder/skills/pdf-to-markdown/`.
+Delete the skill directory from your CLI's skills folder, e.g. `~/.claude/skills/pdf-to-markdown-skill/` or `~/.qoder/skills/pdf-to-markdown-skill/`.
 
 ## License
 

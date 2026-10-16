@@ -1,5 +1,5 @@
 ---
-name: pdf-to-markdown
+name: pdf-to-markdown-skill
 description: Convert PDF files into Markdown (.md) for AI ingestion, including scanned/image-only PDFs via Tesseract OCR. Use when the user asks to convert, extract, or turn a PDF into Markdown or text ("PDF 轉 Markdown", "轉成 md", "將個 PDF 變做 markdown", "extract text from this PDF", "OCR this scanned PDF"). Handles digital and scanned PDFs automatically, manages its own Python environment (venv + PyMuPDF) and Tesseract language data.
 ---
 

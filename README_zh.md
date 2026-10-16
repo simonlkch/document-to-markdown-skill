@@ -1,4 +1,4 @@
-# pdf-to-markdown
+# pdf-to-markdown-skill
 
 [English](README.md) | [繁體中文](README_zh.md) | [简体中文](README_cn.md)
 
@@ -16,8 +16,8 @@
 ### 安裝到你的 AI coding CLI（推薦）
 
 ```bash
-git clone https://github.com/<your-github-username>/pdf-to-markdown.git
-cd pdf-to-markdown
+git clone https://github.com/<your-github-username>/pdf-to-markdown-skill.git
+cd pdf-to-markdown-skill
 python install.py
 ```
 
@@ -25,23 +25,23 @@ python install.py
 
 | 工具 | `--target` | 安裝位置 |
 |---|---|---|
-| Claude Code | `claude` | `~/.claude/skills/pdf-to-markdown/` |
-| OpenAI Codex CLI | `codex` | `~/.codex/skills/pdf-to-markdown/`（會讀取 `$CODEX_HOME`） |
-| opencode | `opencode` | `~/.config/opencode/skills/pdf-to-markdown/` |
-| pi | `pi` | `~/.agents/skills/pdf-to-markdown/`（共用的 skills 目錄） |
-| Qoder | `qoder` | `~/.qoder/skills/pdf-to-markdown/` |
+| Claude Code | `claude` | `~/.claude/skills/pdf-to-markdown-skill/` |
+| OpenAI Codex CLI | `codex` | `~/.codex/skills/pdf-to-markdown-skill/`（會讀取 `$CODEX_HOME`） |
+| opencode | `opencode` | `~/.config/opencode/skills/pdf-to-markdown-skill/` |
+| pi | `pi` | `~/.agents/skills/pdf-to-markdown-skill/`（共用的 skills 目錄） |
+| Qoder | `qoder` | `~/.qoder/skills/pdf-to-markdown-skill/` |
 
 ```bash
 python install.py --target all        # 所有支援的 CLI
 python install.py --link              # 建立符號連結，多個 CLI 共用同一份（共用同一個 venv）
 python install.py --list              # 顯示安裝路徑與偵測狀態
-python install.py --target-dir /path/to/repo/.claude/skills/pdf-to-markdown   # 專案層級／自訂位置
+python install.py --target-dir /path/to/repo/.claude/skills/pdf-to-markdown-skill   # 專案層級／自訂位置
 ```
 
 ### 透過社群安裝器
 
 ```bash
-npx skills add <your-github-username>/pdf-to-markdown
+npx skills add <your-github-username>/pdf-to-markdown-skill
 ```
 
 [skills.sh](https://skills.sh) 可以一次安裝到 75 個以上的 agent（第三方工具）。
@@ -68,7 +68,7 @@ python scripts/pdf_to_markdown.py --setup                       # 一次性：�
 
 首次使用時，agent 會自動幫你完成環境設定：建立技能專屬的 `.venv`、安裝 PyMuPDF、檢查 Tesseract。如果缺少 Tesseract（只有掃描版 PDF 才需要），它會提供一行安裝指令讓你執行。
 
-你也可以明確叫用這個技能：`/pdf-to-markdown`（Qoder、Claude Code）、`$pdf-to-markdown`（Codex）、`/skill:pdf-to-markdown`（pi）。
+你也可以明確叫用這個技能：`/pdf-to-markdown-skill`（Qoder、Claude Code）、`$pdf-to-markdown-skill`（Codex）、`/skill:pdf-to-markdown-skill`（pi）。
 
 轉換結果：PDF 旁邊會產生一個 Markdown 檔，每一頁都是一個 `## Page N` 章節，並附有自我說明的標頭——可直接交給任何 AI。
 
@@ -100,7 +100,7 @@ python scripts/pdf_to_markdown.py --setup                       # 一次性：�
 
 ## 卸載
 
-把技能目錄從 CLI 的 skills 資料夾刪除即可，例如 `~/.claude/skills/pdf-to-markdown/` 或 `~/.qoder/skills/pdf-to-markdown/`。
+把技能目錄從 CLI 的 skills 資料夾刪除即可，例如 `~/.claude/skills/pdf-to-markdown-skill/` 或 `~/.qoder/skills/pdf-to-markdown-skill/`。
 
 ## 授權
 

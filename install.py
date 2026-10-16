@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""install.py - install the pdf-to-markdown skill into AI coding CLIs.
+"""install.py - install the pdf-to-markdown-skill skill into AI coding CLIs.
 
 Installs this skill (SKILL.md + scripts/) into the skills directory of
 Claude Code, OpenAI Codex CLI, opencode, pi, and Qoder.
@@ -10,7 +10,7 @@ Usage:
     python install.py --target claude,qoder
     python install.py --list          # show target paths and detection status
     python install.py --link          # symlink one shared copy instead of copying
-    python install.py --target-dir "C:/repo/.claude/skills/pdf-to-markdown"
+    python install.py --target-dir "C:/repo/.claude/skills/pdf-to-markdown-skill"
 """
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent
-SKILL_NAME = "pdf-to-markdown"
+SKILL_NAME = "pdf-to-markdown-skill"
 HOME = Path.home()
 IS_WIN = os.name == "nt"
 
@@ -113,16 +113,16 @@ def install_to(dest: Path, link: bool, dry: bool) -> bool:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Install the pdf-to-markdown skill into AI coding CLIs.")
+    ap = argparse.ArgumentParser(description="Install the pdf-to-markdown-skill skill into AI coding CLIs.")
     ap.add_argument("--target", help="comma-separated: claude,codex,opencode,pi,qoder or 'all'")
     ap.add_argument("--target-dir", type=Path,
-                    help="install into this exact directory instead (e.g. a project's .claude/skills/pdf-to-markdown)")
+                    help="install into this exact directory instead (e.g. a project's .claude/skills/pdf-to-markdown-skill)")
     ap.add_argument("--link", action="store_true", help="symlink one shared copy instead of copying")
     ap.add_argument("--dry-run", action="store_true", help="show what would happen, change nothing")
     ap.add_argument("--list", action="store_true", help="list target paths and detection status")
     args = ap.parse_args()
 
-    print(f"pdf-to-markdown installer  (source: {REPO})\n")
+    print(f"pdf-to-markdown-skill installer  (source: {REPO})\n")
     if args.list:
         print("targets:")
         print_table()
